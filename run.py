@@ -16,9 +16,10 @@ def printr(x):
         return x
 
 ### SUBPROCESSES ###
-ADB_DISCONNECT = "adb disconnect".split()
-ADB_TCPIP = "adb tcpip 5555".split()
-ADB_CONNECT = ("adb connect " + config.android_device_ip).split()
+if (config.android_device_ip != None):
+    ADB_DISCONNECT = "adb disconnect".split()
+    ADB_TCPIP = "adb tcpip 5555".split()
+    ADB_CONNECT = ("adb connect " + config.android_device_ip).split()
 ###
 ADB_SHELL = "adb shell " if config.android_device_id is None else "adb -s " + config.android_device_id + " shell "
 ###
