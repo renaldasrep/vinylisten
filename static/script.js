@@ -1,5 +1,5 @@
 $(function () {
-    var socket = new io.connect('http://127.0.0.1:5000/socket');
+    var socket = new io.connect(window.location.hostname + ':5000/socket');
     socket.on('data', function (data) {
         var img = new Image();
         if (data.cover) $(img).attr('src', './static/cover.jpg').attr('class', 'cover');

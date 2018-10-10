@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 eventlet.monkey_patch()
 
-debug = False
+debug = True
 
 def printr(x):
     if debug:
@@ -16,7 +16,11 @@ def printr(x):
         return x
 
 ### SUBPROCESSES ###
-ADB_SHELL = "adb shell " if config.android_device_id is None else "adb shell -s " + config.android_device_id + " "
+ADB_DISCONNECT = "adb disconnect".split()
+ADB_TCPIP = "adb tcpip 5555".split()
+ADB_CONNECT = ("adb connect " + config.android_device_ip).split()
+###
+ADB_SHELL = "adb shell " if config.android_device_id is None else "adb -s " + config.android_device_id + " shell "
 ###
 ADB_CLOSE_SHAZAM = (ADB_SHELL + "am force-stop com.shazam.android -W").split()
 ADB_OPEN_SHAZAM_AND_LISTEN = (ADB_SHELL + "am start -n com.shazam.android/.activities.MainActivity -a com.shazam.android.intent.actions.START_TAGGING").split()
@@ -45,6 +49,12 @@ def vinylisten():
             data = DATA_EMPTY
             socketio.emit("data", data, namespace="/socket")
 
+        if (config.android_device_ip != None):
+            subprocess.call(ADB_DISCONNECT, stdout=FNULL, stderr=FNULL)
+            subprocess.call(ADB_TCPIP, stdout=FNULL, stderr=FNULL)
+            subprocess.call(ADB_CONNECT, stdout=FNULL, stderr=FNULL)
+
+
         subprocess.call(ADB_CLOSE_SHAZAM, stdout=FNULL, stderr=FNULL)
         subprocess.call(ADB_OPEN_SHAZAM_AND_LISTEN, stdout=FNULL, stderr=FNULL)
 
@@ -56,8 +66,8 @@ def vinylisten():
             try:
                 output = subprocess.check_output(ADB_CHECK_CURRENT_ACTIVITY_STACK, stderr=FNULL)
             except (subprocess.CalledProcessError) as e:
-                if last_log != "Device not found":
-                    last_log = printr("Device not found")
+                if last_log != "Device not found or is failing to read Shazam":
+                    last_log = printr("Device not found or is failing to read Shazam")
                 break
             if "TaggingActivity" in output:
                 if time.time() > timeout:
@@ -159,4 +169,4 @@ def client_disconnect():
 
 if __name__ == "__main__":
     thread.start_new_thread(vinylisten)
-    socketio.run(app)
+    socketio.run(app, host="0.0.0.0")
